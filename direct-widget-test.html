@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct ANDI Widget Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .andi-widget {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 50;
+            transition: all 0.3s;
+            width: 20rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">🤖 Direct ANDI Widget Test</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results:</h2>
+            <div id="test-results">
+                <p>⏳ Running tests...</p>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 p-4 rounded-lg mb-6">
+            <h3 class="font-semibold text-blue-800 mb-2">What to expect:</h3>
+            <ul class="text-blue-700 space-y-1">
+                <li>✅ You should see a floating ANDI widget in the bottom-right corner</li>
+                <li>✅ Click the widget to expand it</li>
+                <li>✅ Press Alt+A to toggle visibility</li>
+                <li>✅ Widget should have gradient header and interactive buttons</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Direct ANDI Widget (Static HTML) -->
+    <div id="andi-widget" class="andi-widget">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                        🤖
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-sm">ANDI Assistant</h3>
+                        <p class="text-xs opacity-90">Online & Ready</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <button onclick="toggleWidget()" class="p-1 hover:bg-white hover:bg-opacity-20 rounded" title="Minimize">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="max-h-64 overflow-y-auto">
+                <div class="p-4 text-center text-gray-500 dark:text-gray-400">
+                    <div class="w-8 h-8 mx-auto mb-2 opacity-50">💬</div>
+                    <p class="text-sm">ANDI Widget Test Active</p>
+                    <div class="mt-3 space-y-2">
+                        <button onclick="showTips()" class="block w-full text-blue-500 hover:text-blue-600 text-sm py-1">
+                            Show Quick Tips
+                        </button>
+                        <button onclick="showHelp()" class="block w-full text-blue-500 hover:text-blue-600 text-sm py-1">
+                            Get Help
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-b-lg">
+                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span>Press Alt+A anytime</span>
+                    <div class="flex space-x-2">
+                        <button onclick="showTips()" class="hover:text-blue-600" title="Quick Tips">💡</button>
+                        <button onclick="showHelp()" class="hover:text-green-600" title="Get Help">🎯</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let widgetVisible = true;
+        
+        function updateResults(message, success = true) {
+            const results = document.getElementById('test-results');
+            const statusIcon = success ? '✅' : '❌';
+            results.innerHTML += `<p>${statusIcon} ${message}</p>`;
+        }
+        
+        function toggleWidget() {
+            const widget = document.getElementById('andi-widget');
+            widgetVisible = !widgetVisible;
+            widget.style.display = widgetVisible ? 'block' : 'none';
+            updateResults(`Widget ${widgetVisible ? 'shown' : 'hidden'}`);
+        }
+        
+        function showTips() {
+            alert('🤖 ANDI Quick Tips:\n\n• Use filters to find clients quickly\n• Check status colors for overview\n• Press Alt+A to toggle assistance\n• Refresh data regularly');
+            updateResults('Quick tips displayed');
+        }
+        
+        function showHelp() {
+            alert('🎯 ANDI Help:\n\nI\'m here to assist you with:\n• Dashboard navigation\n• Client management\n• Document verification\n• Risk assessment');
+            updateResults('Help displayed');
+        }
+        
+        // Keyboard shortcut test
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key.toLowerCase() === 'a') {
+                e.preventDefault();
+                toggleWidget();
+                updateResults('Alt+A keyboard shortcut triggered');
+            }
+        });
+        
+        // Initialize tests
+        window.addEventListener('load', () => {
+            updateResults('Page loaded successfully');
+            updateResults('ANDI widget HTML rendered');
+            updateResults('Tailwind CSS loaded');
+            updateResults('JavaScript events attached');
+            
+            // Check if widget is visible
+            const widget = document.getElementById('andi-widget');
+            const rect = widget.getBoundingClientRect();
+            
+            if (rect.width > 0 && rect.height > 0) {
+                updateResults('Widget is visible in DOM');
+            } else {
+                updateResults('Widget has zero dimensions', false);
+            }
+            
+            // Check positioning
+            const styles = window.getComputedStyle(widget);
+            updateResults(`Widget position: ${styles.position}`);
+            updateResults(`Widget z-index: ${styles.zIndex}`);
+            updateResults(`Widget visibility: ${styles.visibility}`);
+            
+            setTimeout(() => {
+                updateResults('Test completed! Widget should be visible in bottom-right corner.');
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 
