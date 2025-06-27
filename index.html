@@ -4,340 +4,741 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KYC Admin Dashboard</title>
+    <title>Rapido KYC - Agent Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .sidebar-transition {
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes gradientBG {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .gradient-bg {
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-50">
-    <div class="min-h-screen p-8" x-data="adminDashboard()">
-        <!-- Header -->
-        <div class="max-w-7xl mx-auto">
-            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-                <div class="flex items-center justify-between">
+<body class="bg-gray-50 dark:bg-gray-900" x-data="agentDashboard()">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <div
+            class="bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 flex flex-col w-64 sidebar-transition">
+            <!-- Logo/Brand -->
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+                    </div>
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900">🚀 KYC Admin Dashboard</h1>
-                        <p class="text-gray-600">Send KYC onboarding invitations with SendGrid</p>
-                    </div>
-                    <button @click="testSendGrid()" :disabled="loading"
-                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-300 transition-colors">
-                        <span x-show="!testing">🧪 Test SendGrid</span>
-                        <span x-show="testing">Testing...</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold">📧</span>
-                            </div>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Invites</p>
-                            <p class="text-2xl font-bold text-gray-900" x-text="stats.total_invites_sent"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold">⏳</span>
-                            </div>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Pending</p>
-                            <p class="text-2xl font-bold text-gray-900" x-text="stats.pending_invitations"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold">✅</span>
-                            </div>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Completed</p>
-                            <p class="text-2xl font-bold text-gray-900" x-text="stats.completed_onboarding"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold">👥</span>
-                            </div>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Active Sessions</p>
-                            <p class="text-2xl font-bold text-gray-900" x-text="stats.active_sessions"></p>
-                        </div>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Rapido KYC</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Agent Dashboard</p>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Send Invitation Form -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-6">📨 Send KYC Invitation</h2>
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' 
+                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                    class="w-full flex items-center p-3 rounded-lg transition-all duration-300 group">
+                    <i data-lucide="layout-dashboard" class="w-6 h-6"
+                        :class="activeTab === 'dashboard' ? 'animate-pulse' : ''"></i>
+                    <span class="ml-3 font-medium">Dashboard</span>
+                </button>
 
-                    <!-- Success/Error Messages -->
-                    <div x-show="successMessage" class="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <span class="text-green-400">✅</span>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-green-800" x-text="successMessage"></p>
-                                <div x-show="invitationDetails" class="mt-2">
-                                    <p class="text-xs text-green-600">
-                                        Invitation ID: <code x-text="invitationDetails.invitation_id"></code>
-                                    </p>
-                                    <p class="text-xs text-green-600">
-                                        Link: <a :href="invitationDetails.onboarding_link" target="_blank"
-                                            class="underline" x-text="invitationDetails.onboarding_link"></a>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <button @click="activeTab = 'clients'" :class="activeTab === 'clients' 
+                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                    class="w-full flex items-center p-3 rounded-lg transition-all duration-300 group">
+                    <i data-lucide="users" class="w-6 h-6" :class="activeTab === 'clients' ? 'animate-pulse' : ''"></i>
+                    <span class="ml-3 font-medium">Clients</span>
+                </button>
 
-                    <div x-show="errorMessage" class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <span class="text-red-400">❌</span>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-red-800" x-text="errorMessage"></p>
-                            </div>
-                        </div>
-                    </div>
+                <button @click="activeTab = 'transactions'" :class="activeTab === 'transactions' 
+                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                    class="w-full flex items-center p-3 rounded-lg transition-all duration-300 group">
+                    <i data-lucide="credit-card" class="w-6 h-6"
+                        :class="activeTab === 'transactions' ? 'animate-pulse' : ''"></i>
+                    <span class="ml-3 font-medium">Transactions</span>
+                </button>
 
-                    <form @submit.prevent="sendInvitation()">
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                                <input type="email" x-model="form.email" required
-                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Enter email address">
-                            </div>
+                <button @click="activeTab = 'settings'" :class="activeTab === 'settings' 
+                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'"
+                    class="w-full flex items-center p-3 rounded-lg transition-all duration-300 group">
+                    <i data-lucide="settings" class="w-6 h-6"
+                        :class="activeTab === 'settings' ? 'animate-pulse' : ''"></i>
+                    <span class="ml-3 font-medium">Settings</span>
+                </button>
+            </nav>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">First Name</label>
-                                    <input type="text" x-model="form.first_name" required
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="First name">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Last Name</label>
-                                    <input type="text" x-model="form.last_name" required
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="Last name">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Agent Name</label>
-                                <input type="text" x-model="form.agent_name" required
-                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Agent sending the invitation">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Custom Message (Optional)</label>
-                                <textarea x-model="form.custom_message" rows="3"
-                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Add a personal message..."></textarea>
-                            </div>
-
-                            <button type="submit" :disabled="loading"
-                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 transition-colors">
-                                <span x-show="!loading">🚀 Send Invitation</span>
-                                <span x-show="loading">Sending...</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Recent Invitations -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-6">📋 Recent Invitations</h2>
-
-                    <div class="space-y-3">
-                        <template x-for="invitation in invitations" :key="invitation.id">
-                            <div class="border border-gray-200 rounded-lg p-4">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="font-medium text-gray-900" x-text="invitation.email"></p>
-                                        <p class="text-sm text-gray-500">
-                                            Created: <span x-text="formatDate(invitation.created_at)"></span>
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full" :class="{
-                                                'bg-yellow-100 text-yellow-800': invitation.status === 'pending',
-                                                'bg-green-100 text-green-800': invitation.status === 'accepted',
-                                                'bg-red-100 text-red-800': invitation.status === 'expired'
-                                            }" x-text="invitation.status">
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-
-                        <div x-show="invitations.length === 0" class="text-center py-8 text-gray-500">
-                            No invitations yet. Send your first one! 🎉
-                        </div>
+            <!-- SendGrid Status -->
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center">
+                    <div class="w-4 h-4 rounded-full bg-green-500 shadow-green-500/50 shadow-lg animate-pulse"></div>
+                    <div class="ml-3">
+                        <p class="text-xs font-medium text-gray-900 dark:text-white">SendGrid</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Connected</p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <!-- User Profile -->
+                        <div class="flex items-center space-x-6">
+                            <div
+                                class="flex items-center space-x-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-600/50 rounded-xl p-3 border border-gray-200 dark:border-gray-600">
+                                <div
+                                    class="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                                    <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="agent.name">
+                                    </p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400" x-text="agent.role"></p>
+                                </div>
+                                <button @click="handleLogout()"
+                                    class="flex items-center px-3 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 rounded-lg transition-all duration-200 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-600 hover:shadow-sm group">
+                                    <i data-lucide="log-out"
+                                        class="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform duration-200"></i>
+                                    <span class="text-sm font-medium">Logout</span>
+                                </button>
+                            </div>
+
+                            <!-- Page Title -->
+                            <div class="border-l border-gray-300 dark:border-gray-600 pl-6">
+                                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Agent Dashboard</h1>
+                                <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                    <i data-lucide="home" class="h-4 w-4 mr-1"></i>
+                                    <span>Dashboard</span>
+                                    <span class="mx-2">•</span>
+                                    <span class="capitalize" x-text="activeTab"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="flex items-center space-x-4">
+                            <div
+                                class="hidden lg:flex items-center text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                <i data-lucide="zap" class="h-3 w-3 mr-1"></i>
+                                QUICK ACTIONS
+                            </div>
+
+                            <div
+                                class="flex items-center space-x-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-600/50 rounded-xl p-2 border border-gray-200 dark:border-gray-600">
+                                <button @click="handleNewClient()"
+                                    class="flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 font-medium border-2 border-indigo-400/30">
+                                    <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i>
+                                    <span class="hidden sm:inline font-semibold">➕ New Client</span>
+                                    <span class="sm:hidden font-semibold">➕ New</span>
+                                </button>
+
+                                <button
+                                    class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200">
+                                    <i data-lucide="bell" class="h-5 w-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 p-6">
+                <!-- Dashboard Tab -->
+                <div x-show="activeTab === 'dashboard'" class="space-y-6">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                                    <i data-lucide="users" class="h-6 w-6 text-blue-600 dark:text-blue-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Clients</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" x-text="clients.length">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                                    <i data-lucide="check-circle"
+                                        class="h-6 w-6 text-green-600 dark:text-green-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white"
+                                        x-text="completedClients"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+                                    <i data-lucide="clock" class="h-6 w-6 text-yellow-600 dark:text-yellow-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" x-text="pendingClients">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                                    <i data-lucide="trending-up"
+                                        class="h-6 w-6 text-purple-600 dark:text-purple-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Compliance Score</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white"
+                                        x-text="complianceScore + '%'"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Clients Table -->
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Clients</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Client</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Status</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Risk Level</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Amount</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Date</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <template x-for="client in recentClients" :key="client.id">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900 dark:text-white"
+                                                        x-text="client.name"></div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400"
+                                                        x-text="client.email"></div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                    :class="getStatusColor(client.status)"
+                                                    x-text="client.status.replace('_', ' ')">
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                    :class="getRiskColor(client.risk_level)" x-text="client.risk_level">
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"
+                                                x-text="formatCurrency(client.payment_amount, client.payment_currency)">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                                                x-text="formatDate(client.created_at)"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button
+                                                    class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3">
+                                                    <i data-lucide="eye" class="h-4 w-4"></i>
+                                                </button>
+                                                <button
+                                                    class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300">
+                                                    <i data-lucide="edit" class="h-4 w-4"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clients Tab -->
+                <div x-show="activeTab === 'clients'" class="space-y-6">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Client Management</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Manage all client profiles and KYC
+                                    status</p>
+                            </div>
+                            <button @click="handleNewClient()"
+                                class="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i>
+                                New Client
+                            </button>
+                        </div>
+
+                        <!-- Search and Filters -->
+                        <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <i data-lucide="search"
+                                        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"></i>
+                                    <input type="text" placeholder="Search clients by name or email..."
+                                        x-model="searchTerm"
+                                        class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" />
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <select x-model="statusFilter"
+                                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="all">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="payment_completed">Completed</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+
+                                <select x-model="riskFilter"
+                                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="all">All Risk</option>
+                                    <option value="low">Low Risk</option>
+                                    <option value="medium">Medium Risk</option>
+                                    <option value="high">High Risk</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- All Clients Table -->
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">All Clients</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Client</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Status</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Risk Level</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Amount</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Date</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <template x-for="client in filteredClients" :key="client.id">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div
+                                                        class="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                                                        <span class="text-sm font-medium text-white"
+                                                            x-text="getInitials(client.name)"></span>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <div class="text-sm font-medium text-gray-900 dark:text-white"
+                                                            x-text="client.name"></div>
+                                                        <div class="text-sm text-gray-500 dark:text-gray-400"
+                                                            x-text="client.email"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                    :class="getStatusColor(client.status)"
+                                                    x-text="client.status.replace('_', ' ')">
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                    :class="getRiskColor(client.risk_level)" x-text="client.risk_level">
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"
+                                                x-text="formatCurrency(client.payment_amount, client.payment_currency)">
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                                                x-text="formatDate(client.created_at)"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button
+                                                    class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3">
+                                                    <i data-lucide="eye" class="h-4 w-4"></i>
+                                                </button>
+                                                <button
+                                                    class="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 mr-3">
+                                                    <i data-lucide="edit" class="h-4 w-4"></i>
+                                                </button>
+                                                <button
+                                                    class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div x-show="activeTab === 'transactions'" class="space-y-6">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Transaction Analytics</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-green-600 dark:text-green-400"
+                                    x-text="'$' + totalTransactionValue.toLocaleString()"></p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Total Volume</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-blue-600 dark:text-blue-400"
+                                    x-text="totalTransactions"></p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Total Transactions</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-purple-600 dark:text-purple-400"
+                                    x-text="'$' + averageTransactionValue.toLocaleString()"></p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Average Value</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div x-show="activeTab === 'settings'" class="space-y-6">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">System Settings</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Email Notifications
+                                    </h4>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Receive email alerts for new
+                                        clients</p>
+                                </div>
+                                <button
+                                    class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600 transition-colors">
+                                    <span
+                                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6"></span>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Auto-KYC Processing
+                                    </h4>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Automatically process low-risk
+                                        clients</p>
+                                </div>
+                                <button
+                                    class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600 transition-colors">
+                                    <span
+                                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- New Client Modal -->
+    <div x-show="showNewClientModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        x-cloak>
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add New Client</h3>
+            <form @submit.prevent="submitNewClient()">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+                        <input type="text" x-model="newClient.name" required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                        <input type="email" x-model="newClient.email" required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+                        <input type="tel" x-model="newClient.phone" required
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" @click="showNewClientModal = false"
+                        class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Add Client
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
-        function adminDashboard() {
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        function agentDashboard() {
             return {
-                loading: false,
-                testing: false,
-                successMessage: '',
-                errorMessage: '',
-                invitationDetails: null,
-                stats: {
-                    total_invites_sent: 0,
-                    pending_invitations: 0,
-                    completed_onboarding: 0,
-                    active_sessions: 0
+                activeTab: 'dashboard',
+                searchTerm: '',
+                statusFilter: 'all',
+                riskFilter: 'all',
+                showNewClientModal: false,
+                newClient: {
+                    name: '',
+                    email: '',
+                    phone: ''
                 },
-                form: {
-                    email: 'perjonasalexius@gmail.com',
-                    first_name: 'Per Jonas',
-                    last_name: 'Alexius',
-                    agent_name: 'Admin Agent',
-                    custom_message: ''
+                agent: {
+                    name: 'John Smith',
+                    role: 'Senior Agent'
                 },
-                invitations: [],
-
-                init() {
-                    this.loadStats();
-                    this.loadInvitations();
-                },
-
-                async loadStats() {
-                    try {
-                        const response = await fetch('http://localhost:8080/api/admin/dashboard/stats', {
-                            headers: {
-                                'Authorization': 'Bearer dummy-token' // You might need proper auth
-                            }
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            this.stats = data.stats;
-                        }
-                    } catch (error) {
-                        console.error('Failed to load stats:', error);
+                clients: [
+                    {
+                        id: '1',
+                        name: 'Alice Johnson',
+                        email: 'alice@example.com',
+                        phone: '+1-555-0123',
+                        status: 'payment_completed',
+                        risk_level: 'low',
+                        payment_amount: 25000,
+                        payment_currency: 'USD',
+                        created_at: '2024-01-15T10:30:00Z'
+                    },
+                    {
+                        id: '2',
+                        name: 'Bob Wilson',
+                        email: 'bob@example.com',
+                        phone: '+1-555-0124',
+                        status: 'pending',
+                        risk_level: 'medium',
+                        payment_amount: 15000,
+                        payment_currency: 'USD',
+                        created_at: '2024-01-14T09:15:00Z'
+                    },
+                    {
+                        id: '3',
+                        name: 'Carol Davis',
+                        email: 'carol@example.com',
+                        phone: '+1-555-0125',
+                        status: 'rejected',
+                        risk_level: 'high',
+                        payment_amount: 50000,
+                        payment_currency: 'USD',
+                        created_at: '2024-01-13T14:45:00Z'
+                    },
+                    {
+                        id: '4',
+                        name: 'David Brown',
+                        email: 'david@example.com',
+                        phone: '+1-555-0126',
+                        status: 'payment_completed',
+                        risk_level: 'low',
+                        payment_amount: 35000,
+                        payment_currency: 'USD',
+                        created_at: '2024-01-12T11:20:00Z'
+                    },
+                    {
+                        id: '5',
+                        name: 'Eva Martinez',
+                        email: 'eva@example.com',
+                        phone: '+1-555-0127',
+                        status: 'pending',
+                        risk_level: 'medium',
+                        payment_amount: 20000,
+                        payment_currency: 'USD',
+                        created_at: '2024-01-11T16:30:00Z'
                     }
+                ],
+
+                get recentClients() {
+                    return this.clients.slice(0, 5);
                 },
 
-                async loadInvitations() {
-                    try {
-                        const response = await fetch('http://localhost:8080/api/admin/dashboard/invitations', {
-                            headers: {
-                                'Authorization': 'Bearer dummy-token' // You might need proper auth
-                            }
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            this.invitations = data.invitations || [];
-                        }
-                    } catch (error) {
-                        console.error('Failed to load invitations:', error);
-                    }
+                get completedClients() {
+                    return this.clients.filter(c => c.status === 'payment_completed').length;
                 },
 
-                async sendInvitation() {
-                    this.loading = true;
-                    this.successMessage = '';
-                    this.errorMessage = '';
-
-                    try {
-                        const response = await fetch('http://localhost:8080/api/admin/send-kyc-invite', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Bearer dummy-token' // You might need proper auth
-                            },
-                            body: JSON.stringify(this.form)
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            this.successMessage = data.message;
-                            this.invitationDetails = data;
-                            this.form = {
-                                email: '',
-                                first_name: '',
-                                last_name: '',
-                                agent_name: 'Admin Agent',
-                                custom_message: ''
-                            };
-                            this.loadStats();
-                            this.loadInvitations();
-                        } else {
-                            this.errorMessage = data.error || 'Failed to send invitation';
-                        }
-                    } catch (error) {
-                        this.errorMessage = 'Network error: ' + error.message;
-                    } finally {
-                        this.loading = false;
-                    }
+                get pendingClients() {
+                    return this.clients.filter(c => c.status === 'pending').length;
                 },
 
-                async testSendGrid() {
-                    this.testing = true;
-                    this.successMessage = '';
-                    this.errorMessage = '';
+                get complianceScore() {
+                    const completed = this.completedClients;
+                    const total = this.clients.length;
+                    return total > 0 ? Math.round((completed / total) * 100) : 0;
+                },
 
-                    try {
-                        const response = await fetch('http://localhost:8080/api/admin/test-sendgrid', {
-                            headers: {
-                                'Authorization': 'Bearer dummy-token' // You might need proper auth
-                            }
-                        });
+                get filteredClients() {
+                    let filtered = this.clients;
 
-                        const data = await response.json();
-
-                        if (data.success) {
-                            this.successMessage = data.message;
-                        } else {
-                            this.errorMessage = data.error || data.message;
-                        }
-                    } catch (error) {
-                        this.errorMessage = 'Network error: ' + error.message;
-                    } finally {
-                        this.testing = false;
+                    if (this.searchTerm) {
+                        filtered = filtered.filter(client =>
+                            client.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                            client.email.toLowerCase().includes(this.searchTerm.toLowerCase())
+                        );
                     }
+
+                    if (this.statusFilter !== 'all') {
+                        filtered = filtered.filter(client => client.status === this.statusFilter);
+                    }
+
+                    if (this.riskFilter !== 'all') {
+                        filtered = filtered.filter(client => client.risk_level === this.riskFilter);
+                    }
+
+                    return filtered;
+                },
+
+                get totalTransactionValue() {
+                    return this.clients.reduce((sum, client) => sum + client.payment_amount, 0);
+                },
+
+                get totalTransactions() {
+                    return this.clients.length;
+                },
+
+                get averageTransactionValue() {
+                    return this.totalTransactions > 0 ? Math.round(this.totalTransactionValue / this.totalTransactions) : 0;
+                },
+
+                getStatusColor(status) {
+                    const colors = {
+                        'payment_completed': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                        'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+                        'rejected': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                    };
+                    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+                },
+
+                getRiskColor(risk) {
+                    const colors = {
+                        'low': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+                        'medium': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+                        'high': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                    };
+                    return colors[risk] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+                },
+
+                formatCurrency(amount, currency) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: currency
+                    }).format(amount);
                 },
 
                 formatDate(dateString) {
                     return new Date(dateString).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
+                        day: 'numeric'
                     });
+                },
+
+                getInitials(name) {
+                    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+                },
+
+                handleNewClient() {
+                    this.showNewClientModal = true;
+                },
+
+                submitNewClient() {
+                    const newClient = {
+                        id: (this.clients.length + 1).toString(),
+                        name: this.newClient.name,
+                        email: this.newClient.email,
+                        phone: this.newClient.phone,
+                        status: 'pending',
+                        risk_level: 'low',
+                        payment_amount: 0,
+                        payment_currency: 'USD',
+                        created_at: new Date().toISOString()
+                    };
+
+                    this.clients.push(newClient);
+                    this.showNewClientModal = false;
+                    this.newClient = { name: '', email: '', phone: '' };
+                },
+
+                handleLogout() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        alert('Logout functionality would redirect to login page');
+                    }
                 }
             }
         }
